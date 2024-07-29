@@ -11,7 +11,6 @@ This repository contains a set of macros designed to facilitate the management o
   - [ECN Import Generator](#ecn-import-generator)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## List of Macros
