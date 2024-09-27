@@ -1,0 +1,55 @@
+SELECT 
+
+part.num as "PartNumber",
+part.description as "PartDescription",
+part.details as "PartDetails",
+uom.code as "UOM",
+part.upc as "UPC",
+parttype.name as PartType,
+if(part.activeFlag,'TRUE','FALSE')  as "Active",
+part.abcCode as "ABCCode",
+round(part.weight,2) as "Weight",
+if(part.weightUomId=3,"lbs",if(part.weightUomId=15,"g",if(part.weightUomId=9,"oz",""))) as "WeightUOM",
+round(part.width,2) as "Width",
+round(part.height,2) as "Height",
+round(part.len,2) as "Length",
+if(part.sizeUomid = 2,"ft",if(part.sizeUOMid = 7, "in","")) as SizeUOM,
+round(part.consumptionrate,0) as "ConsumptionRate",
+"" as PrimaryTracking,
+part.alertNote as AlertNote,
+"" as PictureURL,
+part.revision as Revision,
+poitemtype.name as POItemType,
+part.num as DefaultOutsourcedReturnItem,
+    CASE 
+        WHEN tracktext_counts.rev_count > 1 THEN 'TRUE'
+        ELSE 'FALSE'
+    END AS "Tracks-Revision Level",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."6"'), '$.value')) as "CF-Drawing URL",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."7"'), '$.value')) as "CF-Drawing Number",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."10"'), '$.value')) as "Workflow URL",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."12"'), '$.value')) as "CF-Outgoing Quality Control Plan",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."11"'), '$.value')) as "CF-Incoming Quality Control Plan",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."13"'), '$.value')) as "CF-User's Manual",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."1"'), '$.value')) as "CF-Class Code",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."2"'), '$.value')) as "CF-Source Code",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."3"'), '$.value')) as "CF-Part Status",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."4"'), '$.value')) as "CF-Incoming QC",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."5"'), '$.value')) as "CF-COO",
+JSON_UNQUOTE( JSON_EXTRACT( JSON_EXTRACT(Part.customFields, '$."63"'), '$.value')) as "CF-Test Report"
+FROM
+    part
+LEFT JOIN uom ON part.uomId = uom.id
+LEFT JOIN parttype ON part.typeId = parttype.id
+LEFT JOIN poitemtype ON part.defaultPoItemTypeId = poitemtype.id
+LEFT JOIN (
+    SELECT 
+        partid,
+        COUNT(*) AS rev_count
+    FROM 
+        tag
+    JOIN tracktext ON tag.id = tracktext.tagid AND tracktext.abbr = 'Rev#'
+    GROUP BY 
+        partid
+) AS tracktext_counts ON part.id = tracktext_counts.partid
+where part.num like "
